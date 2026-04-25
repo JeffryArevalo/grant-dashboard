@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>GrantDesk — Grant Management Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root {
+  --bg:#f2f5f9; --surface:#fff; --surf-2:#f7f9fc;
+  --navy:#1e3a5f; --navy-md:#2c527f; --navy-lt:#e8eef6;
+  --teal:#2a7d6f; --teal-lt:#e6f4f2; --teal-bd:rgba(42,125,111,.22);
+  --amber:#9a6b00; --amber-lt:#fdf5e0;
+  --red:#b83232; --red-lt:#fdf0f0; --red-bd:rgba(184,50,50,.2);
+  --slate:#4a6580; --border:#dde4ee; --border2:#c8d3e0;
+  --text:#18293d; --text-2:#4a6070; --text-3:#8a9bac;
+  --ff-h:'Lora',Georgia,serif; --ff-b:'Inter',system-ui,sans-serif;
+  --r:10px; --rs:6px;
+  --sh:0 1px 3px rgba(30,58,95,.07),0 6px 20px rgba(30,58,95,.05);
+  --sh-sm:0 1px 3px rgba(30,58,95,.09);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:15px}
+body{font-family:var(--ff-b);background:var(--bg);color:var(--text);min-height:100vh;line-height:1.6;-webkit-font-smoothing:antialiased}
+
+/* ── HEADER ── */
+.hdr{background:var(--navy);padding:0 2rem;height:62px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 10px rgba(0,0,0,.18)}
+.logo{font-family:var(--ff-h);font-size:1.2rem;font-weight:600;color:#fff;letter-spacing:-.01em}
+.logo span{display:inline-block;width:6px;height:6px;background:var(--teal);border-radius:50%;margin:0 1px 5px;vertical-align:middle}
+.hdr-center{font-size:.75rem;color:rgba(255,255,255,.4);letter-spacing:.04em;text-transform:uppercase;font-weight:500}
+.hdr-r{display:flex;align-items:center;gap:1rem}
+.u1{font-size:.82rem;font-weight:600;color:#fff}.u2{font-size:.7rem;color:rgba(255,255,255,.45)}
+.live-pill{display:flex;align-items:center;gap:6px;background:rgba(42,125,111,.25);border:1px solid rgba(42,125,111,.4);border-radius:20px;padding:3px 11px;font-size:.7rem;color:#7ecfc4;font-weight:500}
+.ldot{width:6px;height:6px;border-radius:50%;background:#5dd6c8;animation:lp 2.2s infinite}
+@keyframes lp{0%,100%{opacity:1}50%{opacity:.35}}
+
+/* ── SUBNAV ── */
+.snav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 2rem;display:flex;align-items:center;position:sticky;top:62px;z-index:99;box-shadow:0 1px 4px rgba(30,58,95,.05)}
+.snav button{background:none;border:none;cursor:pointer;font-family:var(--ff-b);font-size:.8rem;font-weight:500;color:var(--text-2);padding:.75rem 1.2rem;border-bottom:2px solid transparent;transition:all .16s}
+.snav button:hover{color:var(--navy)}.snav button.active{color:var(--navy);border-bottom-color:var(--teal);font-weight:600}
+.snav-r{margin-left:auto;font-size:.73rem;color:var(--text-3);padding:.75rem 0}
+
+/* ── ADD GRANT BUTTON ── */
+.btn-add{display:flex;align-items:center;gap:6px;background:var(--teal);color:#fff;border:none;border-radius:var(--rs);padding:6px 14px;font-family:var(--ff-b);font-size:.78rem;font-weight:600;cursor:pointer;transition:background .15s;margin-left:1rem}
+.btn-add:hover{background:var(--navy)}
+.btn-add svg{flex-shrink:0}
+
+/* ── PAGE ── */
+.pg{padding:1.75rem 2rem 3rem;max-width:1400px}
+.phead{margin-bottom:1.75rem;animation:fup .35s ease both}
+.phead .label{font-size:.69rem;font-weight:600;text-transform:uppercase;letter-spacing:.09em;color:var(--teal);margin-bottom:.4rem}
+.phead h1{font-family:var(--ff-h);font-size:1.65rem;font-weight:600;color:var(--navy);line-height:1.25}
+.phead p{font-size:.8rem;color:var(--text-2);margin-top:.35rem}
+.rule{width:40px;height:2px;background:var(--teal);border-radius:2px;margin:.6rem 0}
+
+/* ── METRICS ── */
+.metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:1.75rem;box-shadow:var(--sh-sm);animation:fup .4s .04s ease both}
+.mcell{background:var(--surface);padding:1.1rem 1.25rem;position:relative;transition:background .15s}
+.mcell:hover{background:var(--surf-2)}
+.mcell .ml{font-size:.67rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--text-3);margin-bottom:.4rem}
+.mcell .mv{font-family:var(--ff-h);font-size:1.65rem;font-weight:600;color:var(--navy);line-height:1}
+.mcell .ms{font-size:.7rem;color:var(--text-2);margin-top:.3rem}
+.mcell .mbar{position:absolute;bottom:0;left:0;width:100%;height:3px}
+
+/* ── LAYOUT ── */
+.cg{display:grid;grid-template-columns:1fr 336px;gap:1.25rem;animation:fup .45s .08s ease both}
+.sb{display:flex;flex-direction:column;gap:1.25rem}
+
+/* ── PANEL ── */
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh-sm)}
+.panel-accent{border-top:3px solid var(--teal)}
+.ph2{padding:.85rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem}
+.ph2 h2{font-size:.72rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--slate)}
+.pbody{padding:1.1rem 1.25rem}
+
+/* ── CHIPS ── */
+.chips{display:flex;gap:.35rem;flex-wrap:wrap}
+.chip{font-size:.69rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;padding:3px 10px;border-radius:20px;cursor:pointer;border:1px solid var(--border2);background:transparent;color:var(--text-2);transition:all .14s;font-family:var(--ff-b)}
+.chip:hover{border-color:var(--navy);color:var(--navy)}
+.chip.active{background:var(--navy);border-color:var(--navy);color:#fff}
+
+/* ── TABLE ── */
+.gt{width:100%;border-collapse:collapse}
+.gt thead th{text-align:left;font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);padding:.5rem 1rem .65rem;border-bottom:1px solid var(--border)}
+.gt tbody tr{border-bottom:1px solid var(--border);transition:background .1s}
+.gt tbody tr:last-child{border-bottom:none}
+.gt tbody tr:hover td{background:var(--surf-2)}
+.gt tbody tr.sel td{background:var(--navy-lt)}
+.gt td{padding:.75rem 1rem;font-size:.82rem;vertical-align:middle}
+.gname{font-weight:600;color:var(--navy);cursor:pointer}
+.gname:hover{text-decoration:underline}
+.gfund{font-size:.71rem;color:var(--text-3);margin-top:2px}
+
+/* ── ROW ACTIONS ── */
+.row-actions{display:flex;gap:5px;opacity:0;transition:opacity .15s}
+.gt tbody tr:hover .row-actions{opacity:1}
+.act-btn{background:none;border:1px solid var(--border2);border-radius:4px;padding:3px 8px;font-size:.69rem;font-weight:600;cursor:pointer;font-family:var(--ff-b);transition:all .12s}
+.act-edit{color:var(--navy-md)}.act-edit:hover{background:var(--navy-lt);border-color:var(--navy)}
+.act-del{color:var(--red)}.act-del:hover{background:var(--red-lt);border-color:var(--red)}
+.act-arc{color:var(--slate)}.act-arc:hover{background:var(--surf-2);border-color:var(--slate)}
+
+/* ── BADGES ── */
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:.67rem;font-weight:600;letter-spacing:.03em;text-transform:uppercase}
+.ba{background:var(--teal-lt);color:var(--teal);border:1px solid var(--teal-bd)}
+.br{background:var(--amber-lt);color:var(--amber);border:1px solid rgba(154,107,0,.2)}
+.bc{background:var(--red-lt);color:var(--red);border:1px solid var(--red-bd)}
+.bp{background:var(--navy-lt);color:var(--navy-md);border:1px solid rgba(44,82,127,.2)}
+.bx{background:#f1f4f8;color:var(--text-3);border:1px solid var(--border2)}
+
+/* ── BURN BAR ── */
+.bw{display:flex;align-items:center;gap:8px}
+.bt{flex:1;height:5px;background:var(--border);border-radius:3px;min-width:50px;overflow:hidden}
+.bf{height:5px}
+.bpct{font-size:.72rem;font-weight:600;min-width:34px;text-align:right}
+
+/* ── DRAWER ── */
+.drawer{background:var(--navy-lt);border-top:2px solid var(--navy);padding:1.25rem;animation:sld .2s ease}
+@keyframes sld{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
+.dg{display:grid;grid-template-columns:1fr 1fr;gap:.35rem 2.5rem}
+.dr{display:flex;justify-content:space-between;align-items:baseline;padding:.4rem 0;border-bottom:1px solid var(--border);font-size:.79rem}
+.dr:last-child{border-bottom:none}
+.dk{color:var(--text-2)}.dv{font-weight:600;text-align:right;max-width:200px;color:var(--navy)}
+.dnote{margin-top:.85rem;padding:.6rem .9rem;background:var(--surface);border-left:3px solid var(--teal);border-radius:0 var(--rs) var(--rs) 0;font-size:.76rem;color:var(--teal);font-weight:500}
+.dnote.urgent{border-left-color:var(--red);color:var(--red)}
+.drawer-edit-btn{display:inline-flex;align-items:center;gap:5px;margin-top:.85rem;background:var(--navy);color:#fff;border:none;border-radius:var(--rs);padding:6px 14px;font-size:.75rem;font-weight:600;cursor:pointer;font-family:var(--ff-b);transition:background .15s}
+.drawer-edit-btn:hover{background:var(--navy-md)}
+
+/* ── TIMELINE ── */
+.tli{display:flex;gap:11px;padding:.7rem 0;border-bottom:1px solid var(--border);align-items:flex-start}
+.tli:last-child{border-bottom:none}
+.tldot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.tlu{background:var(--red)}.tls{background:var(--amber)}.tlo{background:var(--teal)}
+.tltitle{font-size:.78rem;font-weight:600;color:var(--text);line-height:1.35}
+.tlsub{font-size:.7rem;color:var(--text-3);margin-top:2px}
+
+/* ── CHARTS ── */
+.ca{padding:1rem 1.25rem 1.25rem}
+.cc{position:relative}
+.cl{display:flex;gap:1rem;flex-wrap:wrap;margin-top:.75rem}
+.cl span{display:flex;align-items:center;gap:5px;font-size:.72rem;color:var(--text-2)}
+.cl span i{width:10px;height:10px;border-radius:2px;display:block}
+.clayout{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem}
+
+/* ── ARCHIVE ── */
+.agrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(295px,1fr));gap:1rem}
+.acard{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.25rem;box-shadow:var(--sh-sm);transition:box-shadow .15s}
+.acard:hover{box-shadow:var(--sh)}
+.act2{font-weight:600;font-size:.87rem;color:var(--navy);margin-bottom:3px}
+.acf{font-size:.71rem;color:var(--text-3);margin-bottom:.9rem}
+.arow{display:flex;justify-content:space-between;font-size:.75rem;padding:5px 0;border-top:1px solid var(--border)}
+.ak{color:var(--text-2)}.av{font-weight:600;color:var(--navy)}
+.anote{margin-top:.75rem;font-size:.71rem;color:var(--text-3);font-style:italic}
+.empty{text-align:center;padding:4rem 2rem;color:var(--text-2)}
+.empty h3{font-family:var(--ff-h);font-size:1.25rem;color:var(--navy);margin-bottom:.5rem}
+
+/* ── INFO BOX ── */
+.ibox{display:flex;align-items:flex-start;gap:.75rem;background:var(--teal-lt);border:1px solid var(--teal-bd);border-left:3px solid var(--teal);border-radius:0 var(--r) var(--r) 0;padding:.8rem 1rem;margin-bottom:1.5rem;font-size:.79rem;color:var(--text-2)}
+.ibox strong{color:var(--teal)}
+
+/* ══════════════════════════════════
+   MODAL
+══════════════════════════════════ */
+.modal-overlay{position:fixed;inset:0;background:rgba(18,32,50,.55);z-index:1000;display:flex;align-items:center;justify-content:center;padding:1rem;animation:fadeO .18s ease}
+@keyframes fadeO{from{opacity:0}to{opacity:1}}
+.modal-overlay.hidden{display:none}
+.modal{background:var(--surface);border-radius:var(--r);box-shadow:0 8px 40px rgba(18,32,50,.22);width:100%;max-width:640px;max-height:92vh;display:flex;flex-direction:column;animation:slideM .22s ease}
+@keyframes slideM{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.modal-head{padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.modal-head h3{font-family:var(--ff-h);font-size:1.1rem;font-weight:600;color:var(--navy)}
+.modal-close{background:none;border:none;cursor:pointer;color:var(--text-3);font-size:1.3rem;line-height:1;padding:2px 6px;border-radius:4px;transition:all .12s}
+.modal-close:hover{background:var(--surf-2);color:var(--text)}
+.modal-body{padding:1.5rem;overflow-y:auto;flex:1}
+.modal-footer{padding:1rem 1.5rem;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:.6rem;flex-shrink:0}
+
+/* ── FORM ── */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.form-full{grid-column:1/-1}
+.form-group{display:flex;flex-direction:column;gap:.35rem}
+.form-group label{font-size:.75rem;font-weight:600;color:var(--text-2);letter-spacing:.02em}
+.form-group input,.form-group select,.form-group textarea{font-family:var(--ff-b);font-size:.83rem;color:var(--text);background:var(--surf-2);border:1px solid var(--border2);border-radius:var(--rs);padding:.55rem .75rem;transition:border-color .14s,box-shadow .14s;width:100%}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(42,125,111,.12)}
+.form-group textarea{resize:vertical;min-height:72px}
+.form-section{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--teal);margin-bottom:.5rem;padding-bottom:.35rem;border-bottom:1px solid var(--border);grid-column:1/-1}
+.form-hint{font-size:.7rem;color:var(--text-3);margin-top:.1rem}
+
+/* ── BUTTONS ── */
+.btn{font-family:var(--ff-b);font-size:.8rem;font-weight:600;border-radius:var(--rs);padding:7px 18px;border:none;cursor:pointer;transition:all .14s}
+.btn-primary{background:var(--teal);color:#fff}.btn-primary:hover{background:var(--navy)}
+.btn-danger{background:var(--red);color:#fff}.btn-danger:hover{background:#8e2222}
+.btn-ghost{background:transparent;color:var(--text-2);border:1px solid var(--border2)}.btn-ghost:hover{background:var(--surf-2);color:var(--text)}
+
+/* ── CONFIRM DIALOG ── */
+.confirm-box{background:var(--surface);border-radius:var(--r);box-shadow:0 8px 40px rgba(18,32,50,.22);width:100%;max-width:380px;padding:1.75rem;animation:slideM .2s ease}
+.confirm-box h3{font-family:var(--ff-h);font-size:1.05rem;color:var(--navy);margin-bottom:.5rem}
+.confirm-box p{font-size:.82rem;color:var(--text-2);margin-bottom:1.25rem;line-height:1.55}
+.confirm-actions{display:flex;gap:.6rem;justify-content:flex-end}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--navy);color:#fff;padding:.65rem 1.1rem;border-radius:var(--r);font-size:.8rem;font-weight:500;box-shadow:var(--sh);z-index:2000;animation:toastIn .25s ease;pointer-events:none}
+.toast.success{background:var(--teal)}.toast.error{background:var(--red)}
+@keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* ── EMPTY STATE ── */
+.empty-table{text-align:center;padding:3rem 1rem;color:var(--text-3);font-size:.83rem}
+.empty-table p{margin-bottom:.5rem}
+
+/* ── FOOTER ── */
+.ft{border-top:1px solid var(--border);background:var(--surface);padding:1rem 2rem;margin-top:2rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem}
+.ft p{font-size:.72rem;color:var(--text-3)}
+.ft a{color:var(--teal);text-decoration:none}.ft a:hover{text-decoration:underline}
+
+@keyframes fup{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+@media(max-width:960px){.cg{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(3,1fr)}.clayout{grid-template-columns:1fr}.dg{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}}
+@media(max-width:600px){.hdr,.snav,.pg,.ft{padding-left:1rem;padding-right:1rem}.metrics{grid-template-columns:1fr 1fr}.phead h1{font-size:1.35rem}.hdr-center{display:none}}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="hdr">
+  <div class="logo">Grant<span></span>Desk</div>
+  <div class="hdr-center">Grant Management &amp; Budget · FY 2025–2026</div>
+  <div class="hdr-r">
+    <div><div class="u1">Jeffry Arevalo</div><div class="u2">Budget Team · HHS 60 COO Division</div></div>
+    <div class="live-pill"><div class="ldot"></div>Live</div>
+  </div>
+</header>
+
+<!-- SUBNAV -->
+<nav class="snav">
+  <button class="active" onclick="showPage('dashboard',this)">Dashboard</button>
+  <button onclick="showPage('charts',this)">Budget Analysis</button>
+  <button onclick="showPage('archive',this)">Archive
+    <span id="arc-badge" style="background:var(--red-lt);color:var(--red);border:1px solid var(--red-bd);border-radius:20px;padding:1px 7px;font-size:.65rem;margin-left:5px;font-weight:600;"></span>
+  </button>
+  <button class="btn-add" onclick="openAddModal()">
+    <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1v11M1 6.5h11" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    Add Grant
+  </button>
+  <div class="snav-r" id="snav-date"></div>
+</nav>
+
+<!-- ══ DASHBOARD ══ -->
+<div id="page-dashboard" class="pg">
+  <div class="phead">
+    <div class="label">FY 2025–2026 · HHS 60 Chief Operating Officer Division</div>
+    <h1>Grant Portfolio Overview</h1>
+    <div class="rule"></div>
+    <p>Active grants · Compliance tracking · Budget utilization</p>
+  </div>
+  <div class="metrics" id="metrics-strip">
+    <div class="mcell"><div class="mbar"></div><div class="ml">Active Grants</div><div class="mv" id="m0">—</div><div class="ms">in portfolio</div></div>
+    <div class="mcell"><div class="mbar"></div><div class="ml">Total Awarded</div><div class="mv" id="m1">—</div><div class="ms">FY 2025–2026</div></div>
+    <div class="mcell"><div class="mbar"></div><div class="ml">Total Spent YTD</div><div class="mv" id="m2">—</div><div class="ms" id="m2s">—</div></div>
+    <div class="mcell"><div class="mbar"></div><div class="ml">Avg Burn Rate</div><div class="mv" id="m3">—</div><div class="ms">across active grants</div></div>
+    <div class="mcell"><div class="mbar"></div><div class="ml">Urgent Deadlines</div><div class="mv" id="m4">—</div><div class="ms">within 30 days</div></div>
+  </div>
+  <div class="cg">
+    <div class="panel panel-accent">
+      <div class="ph2">
+        <h2>Active Grant Roster</h2>
+        <div class="chips">
+          <button class="chip active" onclick="filterGrants('all',this)">All</button>
+          <button class="chip" onclick="filterGrants('active',this)">Active</button>
+          <button class="chip" onclick="filterGrants('reporting',this)">Reporting</button>
+          <button class="chip" onclick="filterGrants('closeout',this)">Closeout</button>
+          <button class="chip" onclick="filterGrants('pending',this)">Pending</button>
+        </div>
+      </div>
+      <table class="gt">
+        <thead><tr>
+          <th>Grant / Funding Source</th>
+          <th>Award</th><th>Spent YTD</th><th>Burn Rate</th><th>Status</th><th>End Date</th><th></th>
+        </tr></thead>
+        <tbody id="grant-tbody"></tbody>
+      </table>
+    </div>
+    <div class="sb">
+      <div class="panel panel-accent">
+        <div class="ph2"><h2>Compliance Deadlines</h2></div>
+        <div class="pbody" id="comp-list"></div>
+      </div>
+      <div class="panel">
+        <div class="ph2"><h2>Spend by Program Area</h2></div>
+        <div class="ca">
+          <div class="cc" style="height:186px"><canvas id="donutChart" role="img" aria-label="Donut chart: spending by program area">Spending by program area.</canvas></div>
+          <div class="cl" id="donut-legend"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ BUDGET ANALYSIS ══ -->
+<div id="page-charts" class="pg" style="display:none">
+  <div class="phead">
+    <div class="label">Financial Reporting · FY 2025–2026</div>
+    <h1>Budget Analysis</h1>
+    <div class="rule"></div>
+    <p>Awarded vs. actual spending · Monthly trends · Utilization rates</p>
+  </div>
+  <div class="clayout">
+    <div class="panel panel-accent">
+      <div class="ph2"><h2>Awarded vs. Spent — All Grants</h2></div>
+      <div class="ca"><div class="cc" style="height:280px"><canvas id="barChart" role="img" aria-label="Bar chart: awarded vs spent per grant">Budget vs actual per grant.</canvas></div>
+      <div class="cl"><span><i style="background:#1e3a5f"></i>Awarded</span><span><i style="background:#2a7d6f"></i>Spent YTD</span></div></div>
+    </div>
+    <div class="panel panel-accent">
+      <div class="ph2"><h2>Monthly Spend Trend — FY 2026</h2></div>
+      <div class="ca"><div class="cc" style="height:280px"><canvas id="lineChart" role="img" aria-label="Line chart: monthly grant expenditures FY2026">Monthly expenditures FY2026.</canvas></div></div>
+    </div>
+    <div class="panel">
+      <div class="ph2"><h2>Budget Utilization by Grant</h2></div>
+      <div class="ca"><div class="cc" style="height:260px"><canvas id="horizBar" role="img" aria-label="Horizontal bar chart: budget utilization per grant">Budget utilization per grant.</canvas></div></div>
+    </div>
+    <div class="panel">
+      <div class="ph2"><h2>Portfolio Summary</h2></div>
+      <div class="pbody" id="metrics-detail"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ARCHIVE ══ -->
+<div id="page-archive" class="pg" style="display:none">
+  <div class="phead">
+    <div class="label">Historical Records</div>
+    <h1>Archived Grants</h1>
+    <div class="rule"></div>
+    <p>Grants transferred here automatically 30 days after their closeout date</p>
+  </div>
+  <div class="ibox">
+    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" style="flex-shrink:0;margin-top:2px"><circle cx="7.5" cy="7.5" r="7" stroke="#2a7d6f" stroke-opacity=".5"/><path d="M7.5 6.5v4M7.5 4.5v.5" stroke="#2a7d6f" stroke-width="1.4" stroke-linecap="round"/></svg>
+    <span><strong>Archive policy:</strong> Grants with Closeout status and a recorded closeout date move here automatically 30 days after that date. You can also manually archive any grant using the Archive button in the roster.</span>
+  </div>
+  <div id="archive-content"></div>
+</div>
+
+<footer class="ft">
+  <p>GrantDesk · Grant Management &amp; Budget Dashboard · Built by <a href="https://github.com/JeffryArevalo" target="_blank">Jeffry Arevalo</a></p>
+  <p id="ft-date"></p>
+</footer>
+
+<!-- ══════════════════════════════════════════════════
+     ADD / EDIT MODAL
+══════════════════════════════════════════════════ -->
+<div class="modal-overlay hidden" id="grant-modal" onclick="handleOverlayClick(event)">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-head">
+      <h3 id="modal-title">Add Grant</h3>
+      <button class="modal-close" onclick="closeModal()" aria-label="Close">×</button>
+    </div>
+    <div class="modal-body">
+      <form id="grant-form" onsubmit="submitGrant(event)">
+        <div class="form-grid">
+          <div class="form-section">Grant Information</div>
+
+          <div class="form-group form-full">
+            <label for="f-name">Grant Name *</label>
+            <input id="f-name" type="text" placeholder="e.g. Community Mental Health Initiative" required/>
+          </div>
+
+          <div class="form-group">
+            <label for="f-funder">Funder / Agency *</label>
+            <input id="f-funder" type="text" placeholder="e.g. SAMHSA, HUD, NTIA" required/>
+          </div>
+
+          <div class="form-group">
+            <label for="f-type">Funding Type *</label>
+            <select id="f-type" required>
+              <option value="">Select…</option>
+              <option>Federal</option>
+              <option>State</option>
+              <option>Local</option>
+              <option>Private</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="f-cfda">CFDA / Program Code</label>
+            <input id="f-cfda" type="text" placeholder="e.g. 93.243 or N/A"/>
+          </div>
+
+          <div class="form-group">
+            <label for="f-prog">Program Area *</label>
+            <select id="f-prog" required>
+              <option value="">Select…</option>
+              <option>Behavioral Health</option>
+              <option>Housing</option>
+              <option>Food & Nutrition</option>
+              <option>Aging Services</option>
+              <option>Employment</option>
+              <option>Technology</option>
+              <option>Children & Youth</option>
+              <option>Disability Services</option>
+              <option>Public Health</option>
+              <option>Other</option>
+            </select>
+          </div>
+
+          <div class="form-section">Financial Details</div>
+
+          <div class="form-group">
+            <label for="f-award">Award Amount ($) *</label>
+            <input id="f-award" type="number" min="0" step="1" placeholder="e.g. 520000" required/>
+          </div>
+
+          <div class="form-group">
+            <label for="f-spent">Spent YTD ($)</label>
+            <input id="f-spent" type="number" min="0" step="1" placeholder="e.g. 412000"/>
+            <span class="form-hint">Update this regularly to track burn rate</span>
+          </div>
+
+          <div class="form-group">
+            <label for="f-match">Match Required ($)</label>
+            <input id="f-match" type="number" min="0" step="1" placeholder="0 if none"/>
+          </div>
+
+          <div class="form-group">
+            <label for="f-pm">Project Manager</label>
+            <input id="f-pm" type="text" placeholder="e.g. Jeffry Arevalo" value="Jeffry Arevalo"/>
+          </div>
+
+          <div class="form-section">Dates &amp; Status</div>
+
+          <div class="form-group">
+            <label for="f-start">Start Date *</label>
+            <input id="f-start" type="date" required/>
+          </div>
+
+          <div class="form-group">
+            <label for="f-end">End Date *</label>
+            <input id="f-end" type="date" required/>
+          </div>
+
+          <div class="form-group">
+            <label for="f-status">Status *</label>
+            <select id="f-status" required>
+              <option value="">Select…</option>
+              <option value="active">Active</option>
+              <option value="reporting">Reporting</option>
+              <option value="closeout">Closeout</option>
+              <option value="pending">Pending</option>
+            </select>
+          </div>
+
+          <div class="form-group" id="codate-group" style="display:none">
+            <label for="f-codate">Closeout Date</label>
+            <input id="f-codate" type="date"/>
+            <span class="form-hint">Auto-archives 30 days after this date</span>
+          </div>
+
+          <div class="form-group form-full">
+            <label for="f-notes">Notes / Next Action</label>
+            <textarea id="f-notes" placeholder="e.g. Q2 Progress Report due May 15, 2026"></textarea>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitGrant()">Save Grant</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM DIALOG -->
+<div class="modal-overlay hidden" id="confirm-modal">
+  <div class="confirm-box" role="dialog" aria-modal="true">
+    <h3 id="confirm-title">Are you sure?</h3>
+    <p id="confirm-msg">This action cannot be undone.</p>
+    <div class="confirm-actions">
+      <button class="btn btn-ghost" onclick="closeConfirm()">Cancel</button>
+      <button class="btn btn-danger" id="confirm-ok">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════════
+// DATA LAYER — localStorage persistence
+// ══════════════════════════════════════════════════════════════════
+const STORAGE_KEY = 'grantdesk_v1';
+
+const DEFAULT_GRANTS = [
+  {id:'g1',name:'Community Mental Health Initiative',funder:'SAMHSA',type:'Federal',prog:'Behavioral Health',award:520000,spent:412000,start:'2024-10-01',end:'2026-09-30',coDate:'',status:'active',cfda:'93.243',match:52000,pm:'Jeffry Arevalo',notes:'Q2 Progress Report due May 15, 2026'},
+  {id:'g2',name:'Housing Stability & Eviction Prevention',funder:'HUD',type:'Federal',prog:'Housing',award:380000,spent:291000,start:'2025-01-01',end:'2026-12-31',coDate:'',status:'active',cfda:'14.231',match:38000,pm:'Jeffry Arevalo',notes:'Semi-annual report due June 30, 2026'},
+  {id:'g3',name:'Early Childhood Nutrition Program',funder:'USDA / MD State',type:'State',prog:'Food & Nutrition',award:215000,spent:215000,start:'2024-07-01',end:'2025-06-30',coDate:'',status:'reporting',cfda:'10.558',match:0,pm:'Jeffry Arevalo',notes:'URGENT: Final expenditure report due April 30, 2026'},
+  {id:'g4',name:'Senior Services Transportation Grant',funder:'County Government',type:'Local',prog:'Aging Services',award:175000,spent:168000,start:'2024-04-01',end:'2025-03-31',coDate:'2025-03-01',status:'closeout',cfda:'N/A',match:17500,pm:'Jeffry Arevalo',notes:'Closeout package submitted — awaiting final agency approval'},
+  {id:'g5',name:'Workforce Re-entry & Job Training',funder:'DOL ETA',type:'Federal',prog:'Employment',award:650000,spent:187000,start:'2025-10-01',end:'2027-09-30',coDate:'',status:'active',cfda:'17.278',match:65000,pm:'Jeffry Arevalo',notes:'On track — Year 1 mid-year report due August 2026'},
+  {id:'g6',name:'Digital Equity & Access Initiative',funder:'NTIA',type:'Federal',prog:'Technology',award:468000,spent:74000,start:'2026-01-01',end:'2028-12-31',coDate:'',status:'pending',cfda:'11.625',match:0,pm:'Jeffry Arevalo',notes:'Grant agreement execution in progress'},
+  {id:'g7',name:'Maternal & Child Health Block Grant',funder:'HRSA',type:'Federal',prog:'Behavioral Health',award:298000,spent:298000,start:'2023-10-01',end:'2024-09-30',coDate:'2024-10-15',status:'closeout',cfda:'93.994',match:29800,pm:'Jeffry Arevalo',notes:'All reports submitted. Records retained per 2 CFR Part 200.'},
+];
+
+function loadGrants() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : DEFAULT_GRANTS;
+  } catch { return DEFAULT_GRANTS; }
+}
+
+function saveGrants(grants) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(grants)); } catch {}
+}
+
+let ALL = loadGrants();
+
+// ══════════════════════════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════════════════════════
+const today = new Date();
+const fmt$  = n => '$' + Number(n).toLocaleString();
+const pct   = (a,b) => b > 0 ? Math.round(a/b*100) : 0;
+const bc    = r => r >= 95 ? 'var(--red)' : r >= 70 ? 'var(--teal)' : 'var(--navy-md)';
+const uid   = () => 'g' + Date.now();
+const fmtD  = (d,o) => d ? new Date(d).toLocaleDateString('en-US', o||{month:'short',day:'numeric',year:'numeric'}) : '—';
+const isArc = g => g.status==='closeout' && g.coDate && (today-new Date(g.coDate))/86400000>=30;
+const bdg   = s => ({
+  active:    '<span class="badge ba">Active</span>',
+  reporting: '<span class="badge br">Reporting</span>',
+  closeout:  '<span class="badge bc">Closeout</span>',
+  pending:   '<span class="badge bp">Pending</span>',
+  archived:  '<span class="badge bx">Archived</span>',
+}[s]||'');
+
+function get() {
+  return { active: ALL.filter(g=>!isArc(g)), archived: ALL.filter(g=>isArc(g)) };
+}
+
+// ══════════════════════════════════════════════════════════════════
+// INIT DATE
+// ══════════════════════════════════════════════════════════════════
+document.getElementById('snav-date').textContent = 'Updated ' + fmtD(today);
+document.getElementById('ft-date').textContent = fmtD(today, {month:'long',day:'numeric',year:'numeric'});
+
+// Compliance deadlines (auto-built from grants in a real version; static for now)
+const COMP = [
+  {t:'Early Childhood Nutrition — Final Report',   d:'April 30, 2026',  u:'u', f:'USDA / MD State'},
+  {t:'Senior Transportation — Closeout Package',   d:'May 1, 2026',     u:'u', f:'County Government'},
+  {t:'Mental Health Initiative — Q2 Report',       d:'May 15, 2026',    u:'u', f:'SAMHSA'},
+  {t:'Housing Stability — Semi-Annual Report',     d:'June 30, 2026',   u:'s', f:'HUD'},
+  {t:'Workforce Re-entry — Mid-Year Report',       d:'August 15, 2026', u:'o', f:'DOL ETA'},
+  {t:'Digital Equity — Agreement Execution',       d:'TBD',             u:'o', f:'NTIA'},
+];
+
+// ══════════════════════════════════════════════════════════════════
+// METRICS
+// ══════════════════════════════════════════════════════════════════
+function renderMetrics() {
+  const { active } = get();
+  const ta = active.reduce((s,g)=>s+Number(g.award),0);
+  const ts = active.reduce((s,g)=>s+Number(g.spent),0);
+  const ab = ta > 0 ? Math.round(ts/ta*100) : 0;
+  const urg = COMP.filter(c=>c.u==='u').length;
+  const bars = ['#1e3a5f','#2a7d6f','#9a6b00', ab>90?'#b83232':'#1e3a5f', '#b83232'];
+  document.getElementById('m0').textContent = active.filter(g=>g.status!=='closeout').length;
+  document.getElementById('m1').textContent = '$'+Math.round(ta/1000)+'K';
+  document.getElementById('m2').textContent = '$'+Math.round(ts/1000)+'K';
+  document.getElementById('m2s').textContent = pct(ts,ta)+'% of portfolio';
+  document.getElementById('m3').textContent = ab+'%';
+  document.getElementById('m4').textContent = urg;
+  document.querySelectorAll('.mbar').forEach((b,i)=>b.style.background=bars[i]);
+}
+
+// ══════════════════════════════════════════════════════════════════
+// TABLE
+// ══════════════════════════════════════════════════════════════════
+let cf = 'all', oid = null;
+
+function filterGrants(f, btn) {
+  cf = f;
+  document.querySelectorAll('.chip').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  closeDrawer();
+  renderTable();
+}
+
+function renderTable() {
+  const { active } = get();
+  const rows = cf==='all' ? active : active.filter(g=>g.status===cf);
+  const tb = document.getElementById('grant-tbody');
+  tb.innerHTML = '';
+
+  if (!rows.length) {
+    tb.innerHTML = `<tr><td colspan="7"><div class="empty-table"><p>No grants match this filter.</p><p style="color:var(--text-3);font-size:.78rem">Try a different filter or add a new grant.</p></div></td></tr>`;
+    return;
+  }
+
+  rows.forEach(g => {
+    const r = pct(Number(g.spent), Number(g.award));
+    const tr = document.createElement('tr');
+    tr.id = 'row-' + g.id;
+    tr.innerHTML = `
+      <td>
+        <div class="gname" onclick="toggleDrawer('${g.id}', this.closest('tr'))">${g.name}</div>
+        <div class="gfund">${g.funder} · ${g.type} · CFDA ${g.cfda||'N/A'}</div>
+      </td>
+      <td>${fmt$(g.award)}</td>
+      <td>${fmt$(g.spent||0)}</td>
+      <td>
+        <div class="bw">
+          <div class="bt"><div class="bf" style="width:${Math.min(r,100)}%;background:${bc(r)}"></div></div>
+          <span class="bpct" style="color:${bc(r)}">${r}%</span>
+        </div>
+      </td>
+      <td>${bdg(g.status)}</td>
+      <td style="font-size:.74rem;color:var(--text-2)">${g.end}</td>
+      <td>
+        <div class="row-actions">
+          <button class="act-btn act-edit" onclick="openEditModal('${g.id}')">Edit</button>
+          <button class="act-btn act-arc" onclick="confirmArchive('${g.id}')">Archive</button>
+          <button class="act-btn act-del" onclick="confirmDelete('${g.id}')">Delete</button>
+        </div>
+      </td>`;
+    tb.appendChild(tr);
+  });
+}
+
+// ══════════════════════════════════════════════════════════════════
+// DRAWER
+// ══════════════════════════════════════════════════════════════════
+function closeDrawer() {
+  const old = document.getElementById('drow');
+  if (old) old.remove();
+  document.querySelectorAll('.gt tr.sel').forEach(r=>r.classList.remove('sel'));
+  oid = null;
+}
+
+function toggleDrawer(id, tr) {
+  const old = document.getElementById('drow');
+  if (old) { old.remove(); document.querySelectorAll('.gt tr.sel').forEach(r=>r.classList.remove('sel')); }
+  if (oid === id) { oid = null; return; }
+  oid = id;
+  const g = ALL.find(x=>x.id===id);
+  if (!g) return;
+  tr.classList.add('sel');
+  const r = pct(Number(g.spent), Number(g.award));
+  const rem = Number(g.award) - Number(g.spent);
+  const isUrgent = g.notes && g.notes.toLowerCase().startsWith('urgent');
+  const dtr = document.createElement('tr'); dtr.id = 'drow';
+  dtr.innerHTML = `<td colspan="7" style="padding:0 0 2px;background:transparent">
+    <div class="drawer">
+      <div class="dg">
+        <div>
+          <div class="dr"><span class="dk">Program area</span><span class="dv">${g.prog}</span></div>
+          <div class="dr"><span class="dk">Project period</span><span class="dv">${g.start} – ${g.end}</span></div>
+          <div class="dr"><span class="dk">Project manager</span><span class="dv">${g.pm||'—'}</span></div>
+          <div class="dr"><span class="dk">Match required</span><span class="dv">${Number(g.match)>0?fmt$(g.match):'None'}</span></div>
+        </div>
+        <div>
+          <div class="dr"><span class="dk">Award amount</span><span class="dv">${fmt$(g.award)}</span></div>
+          <div class="dr"><span class="dk">Spent YTD</span><span class="dv">${fmt$(g.spent||0)}</span></div>
+          <div class="dr"><span class="dk">Remaining balance</span><span class="dv" style="color:${rem>=0?'var(--teal)':'var(--red)'}">${fmt$(rem)}</span></div>
+          <div class="dr"><span class="dk">Burn rate</span><span class="dv" style="color:${bc(r)}">${r}%</span></div>
+        </div>
+      </div>
+      ${g.notes ? `<div class="dnote${isUrgent?' urgent':''}">${g.notes}</div>` : ''}
+      <button class="drawer-edit-btn" onclick="openEditModal('${g.id}')">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="margin-right:4px"><path d="M8 2l2 2-6 6H2V8l6-6z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
+        Update Progress
+      </button>
+    </div></td>`;
+  tr.after(dtr);
+}
+
+// ══════════════════════════════════════════════════════════════════
+// COMPLIANCE SIDEBAR
+// ══════════════════════════════════════════════════════════════════
+function renderCompliance() {
+  document.getElementById('comp-list').innerHTML = COMP.map(c=>`
+    <div class="tli">
+      <div class="tldot tl${c.u}"></div>
+      <div><div class="tltitle">${c.t}</div><div class="tlsub">${c.d} · ${c.f}</div></div>
+    </div>`).join('');
+}
+
+// ══════════════════════════════════════════════════════════════════
+// ARCHIVE PAGE
+// ══════════════════════════════════════════════════════════════════
+function renderArchive() {
+  const { archived } = get();
+  document.getElementById('arc-badge').textContent = archived.length;
+  if (!archived.length) {
+    document.getElementById('archive-content').innerHTML = `
+      <div class="empty"><div style="font-size:2.5rem;opacity:.18;margin-bottom:1rem">🗄</div>
+      <h3>No archived grants yet</h3>
+      <p>Grants move here 30 days after closeout date, or when you manually archive them.</p></div>`;
+    return;
+  }
+  document.getElementById('archive-content').innerHTML = `<div class="agrid">${archived.map(g=>{
+    const r = pct(Number(g.spent), Number(g.award));
+    const aD = g.coDate ? fmtD(new Date(new Date(g.coDate).getTime()+30*86400000)) : '—';
+    return `<div class="acard">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:3px">
+        <div class="act2">${g.name}</div>${bdg('archived')}
+      </div>
+      <div class="acf">${g.funder} · ${g.type} · CFDA ${g.cfda||'N/A'}</div>
+      <div class="arow"><span class="ak">Award Amount</span><span class="av">${fmt$(g.award)}</span></div>
+      <div class="arow"><span class="ak">Total Spent</span><span class="av">${fmt$(g.spent||0)}</span></div>
+      <div class="arow"><span class="ak">Final Burn Rate</span><span class="av" style="color:${bc(r)}">${r}%</span></div>
+      <div class="arow"><span class="ak">Project Period</span><span class="av">${g.start} – ${g.end}</span></div>
+      <div class="arow"><span class="ak">Archived On</span><span class="av">${aD}</span></div>
+      <div class="anote">${g.notes||''}</div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+// ══════════════════════════════════════════════════════════════════
+// MODAL — ADD / EDIT
+// ══════════════════════════════════════════════════════════════════
+let editingId = null;
+
+// Show/hide closeout date field based on status
+document.getElementById('f-status').addEventListener('change', function() {
+  document.getElementById('codate-group').style.display = this.value==='closeout' ? 'flex' : 'none';
+});
+
+function openAddModal() {
+  editingId = null;
+  document.getElementById('modal-title').textContent = 'Add New Grant';
+  document.getElementById('grant-form').reset();
+  document.getElementById('f-pm').value = 'Jeffry Arevalo';
+  document.getElementById('codate-group').style.display = 'none';
+  document.getElementById('grant-modal').classList.remove('hidden');
+  document.getElementById('f-name').focus();
+}
+
+function openEditModal(id) {
+  const g = ALL.find(x=>x.id===id);
+  if (!g) return;
+  editingId = id;
+  document.getElementById('modal-title').textContent = 'Edit Grant';
+  document.getElementById('f-name').value    = g.name;
+  document.getElementById('f-funder').value  = g.funder;
+  document.getElementById('f-type').value    = g.type;
+  document.getElementById('f-cfda').value    = g.cfda||'';
+  document.getElementById('f-prog').value    = g.prog;
+  document.getElementById('f-award').value   = g.award;
+  document.getElementById('f-spent').value   = g.spent||0;
+  document.getElementById('f-match').value   = g.match||0;
+  document.getElementById('f-pm').value      = g.pm||'';
+  document.getElementById('f-start').value   = g.start;
+  document.getElementById('f-end').value     = g.end;
+  document.getElementById('f-status').value  = g.status;
+  document.getElementById('f-codate').value  = g.coDate||'';
+  document.getElementById('f-notes').value   = g.notes||'';
+  document.getElementById('codate-group').style.display = g.status==='closeout' ? 'flex' : 'none';
+  document.getElementById('grant-modal').classList.remove('hidden');
+  document.getElementById('f-name').focus();
+}
+
+function closeModal() {
+  document.getElementById('grant-modal').classList.add('hidden');
+  editingId = null;
+}
+
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById('grant-modal')) closeModal();
+}
+
+function submitGrant() {
+  const name   = document.getElementById('f-name').value.trim();
+  const funder = document.getElementById('f-funder').value.trim();
+  const type   = document.getElementById('f-type').value;
+  const prog   = document.getElementById('f-prog').value;
+  const award  = Number(document.getElementById('f-award').value);
+  const start  = document.getElementById('f-start').value;
+  const end    = document.getElementById('f-end').value;
+  const status = document.getElementById('f-status').value;
+
+  if (!name || !funder || !type || !prog || !award || !start || !end || !status) {
+    showToast('Please fill in all required fields.', 'error'); return;
+  }
+
+  const grant = {
+    id:      editingId || uid(),
+    name,
+    funder,
+    type,
+    cfda:    document.getElementById('f-cfda').value.trim() || 'N/A',
+    prog,
+    award,
+    spent:   Number(document.getElementById('f-spent').value) || 0,
+    match:   Number(document.getElementById('f-match').value) || 0,
+    pm:      document.getElementById('f-pm').value.trim(),
+    start,
+    end,
+    status,
+    coDate:  document.getElementById('f-codate').value || '',
+    notes:   document.getElementById('f-notes').value.trim(),
+  };
+
+  if (editingId) {
+    const idx = ALL.findIndex(g=>g.id===editingId);
+    if (idx > -1) ALL[idx] = grant;
+    showToast('Grant updated successfully.', 'success');
+  } else {
+    ALL.unshift(grant);
+    showToast('Grant added successfully.', 'success');
+  }
+
+  saveGrants(ALL);
+  closeModal();
+  closeDrawer();
+  refreshAll();
+}
+
+// ══════════════════════════════════════════════════════════════════
+// CONFIRM DIALOG
+// ══════════════════════════════════════════════════════════════════
+function showConfirm(title, msg, onOk) {
+  document.getElementById('confirm-title').textContent = title;
+  document.getElementById('confirm-msg').textContent = msg;
+  document.getElementById('confirm-ok').onclick = () => { onOk(); closeConfirm(); };
+  document.getElementById('confirm-modal').classList.remove('hidden');
+}
+function closeConfirm() { document.getElementById('confirm-modal').classList.add('hidden'); }
+
+function confirmDelete(id) {
+  const g = ALL.find(x=>x.id===id);
+  if (!g) return;
+  showConfirm('Delete Grant', `Permanently delete "${g.name}"? This cannot be undone.`, () => {
+    ALL = ALL.filter(x=>x.id!==id);
+    saveGrants(ALL);
+    closeDrawer();
+    refreshAll();
+    showToast('Grant deleted.', 'success');
+  });
+}
+
+function confirmArchive(id) {
+  const g = ALL.find(x=>x.id===id);
+  if (!g) return;
+  showConfirm('Archive Grant', `Move "${g.name}" to the archive? You can view it on the Archive page.`, () => {
+    const idx = ALL.findIndex(x=>x.id===id);
+    if (idx > -1) {
+      ALL[idx].status = 'closeout';
+      // Set closeout date to 31 days ago so it auto-archives immediately
+      const d = new Date(); d.setDate(d.getDate()-31);
+      ALL[idx].coDate = d.toISOString().split('T')[0];
+    }
+    saveGrants(ALL);
+    closeDrawer();
+    refreshAll();
+    showToast('Grant archived.', 'success');
+  });
+}
+
+// ══════════════════════════════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════════════════════════════
+function showToast(msg, type='') {
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => { t.style.opacity='0'; t.style.transition='opacity .3s'; setTimeout(()=>t.remove(), 300); }, 2500);
+}
+
+// ══════════════════════════════════════════════════════════════════
+// CHARTS
+// ══════════════════════════════════════════════════════════════════
+let charts = {};
+function buildCharts() {
+  const { active } = get();
+  const gc='rgba(30,58,95,.06)', tc='#8a9bac';
+  const nm = active.map(g=>g.name.split(' ').slice(0,2).join(' '));
+
+  if (charts.bar) charts.bar.destroy();
+  charts.bar = new Chart(document.getElementById('barChart'), {
+    type:'bar',
+    data:{labels:nm,datasets:[
+      {label:'Awarded',data:active.map(g=>Number(g.award)),backgroundColor:'rgba(30,58,95,.72)',borderRadius:3},
+      {label:'Spent YTD',data:active.map(g=>Number(g.spent||0)),backgroundColor:'rgba(42,125,111,.72)',borderRadius:3}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{x:{ticks:{color:tc,font:{size:10},maxRotation:35,autoSkip:false},grid:{color:gc}},
+              y:{ticks:{color:tc,callback:v=>'$'+v/1000+'K'},grid:{color:gc}}}}
+  });
+
+  if (charts.line) charts.line.destroy();
+  charts.line = new Chart(document.getElementById('lineChart'), {
+    type:'line',
+    data:{labels:['Oct','Nov','Dec','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep'],
+      datasets:[{label:'Monthly Spend',data:[58000,71000,64000,112000,98000,134000,145000,null,null,null,null,null],
+        borderColor:'#2a7d6f',backgroundColor:'rgba(42,125,111,.08)',fill:true,tension:.4,
+        pointRadius:4,pointBackgroundColor:'#2a7d6f',spanGaps:false}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{x:{ticks:{color:tc,font:{size:11}},grid:{color:gc}},
+              y:{ticks:{color:tc,callback:v=>'$'+v/1000+'K'},grid:{color:gc}}}}
+  });
+
+  const hH = active.length*42+60;
+  document.querySelector('#horizBar').parentElement.style.height = hH+'px';
+  if (charts.horiz) charts.horiz.destroy();
+  charts.horiz = new Chart(document.getElementById('horizBar'), {
+    type:'bar',
+    data:{labels:active.map(g=>g.name.split(' ').slice(0,3).join(' ')),
+      datasets:[{label:'Burn %',data:active.map(g=>pct(Number(g.spent||0),Number(g.award))),
+        backgroundColor:active.map(g=>{const r=pct(Number(g.spent||0),Number(g.award));return r>=95?'#b83232':r>=70?'#2a7d6f':'#2c527f';}),borderRadius:3}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{x:{max:100,ticks:{color:tc,callback:v=>v+'%'},grid:{color:gc}},y:{ticks:{color:tc,font:{size:10}},grid:{display:false}}}}
+  });
+
+  const progs={};
+  active.forEach(g=>{progs[g.prog]=(progs[g.prog]||0)+Number(g.spent||0);});
+  const pC=['#1e3a5f','#2a7d6f','#9a6b00','#b83232','#4a6580','#5a8a6a','#7a6030'];
+  const pK=Object.keys(progs);
+  if (charts.donut) charts.donut.destroy();
+  charts.donut = new Chart(document.getElementById('donutChart'), {
+    type:'doughnut',
+    data:{labels:pK,datasets:[{data:pK.map(k=>progs[k]),backgroundColor:pC.slice(0,pK.length),borderWidth:2,borderColor:'#fff',hoverOffset:4}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'66%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+fmt$(ctx.raw)}}}}
+  });
+  document.getElementById('donut-legend').innerHTML=pK.map((k,i)=>`<span><i style="background:${pC[i]}"></i>${k}</span>`).join('');
+
+  const ta=active.reduce((s,g)=>s+Number(g.award),0);
+  const ts=active.reduce((s,g)=>s+Number(g.spent||0),0);
+  const { archived } = get();
+  document.getElementById('metrics-detail').innerHTML=[
+    ['Total Portfolio Value',fmt$(ta)],
+    ['Total Spent YTD',fmt$(ts)],
+    ['Remaining Balance',fmt$(ta-ts)],
+    ['Portfolio Burn Rate',pct(ts,ta)+'%'],
+    ['Federal Grants',active.filter(g=>g.type==='Federal').length+' grants'],
+    ['State / Local Grants',active.filter(g=>g.type!=='Federal').length+' grants'],
+    ['Grants Requiring Match',active.filter(g=>Number(g.match)>0).length+' grants'],
+    ['Archived Grants',archived.length+' grants'],
+  ].map(([k,v])=>`<div class="dr"><span class="dk">${k}</span><span class="dv">${v}</span></div>`).join('');
+}
+
+// ══════════════════════════════════════════════════════════════════
+// PAGE NAVIGATION
+// ══════════════════════════════════════════════════════════════════
+function showPage(n, btn) {
+  ['dashboard','charts','archive'].forEach(p=>{
+    document.getElementById('page-'+p).style.display = p===n?'block':'none';
+  });
+  document.querySelectorAll('.snav button:not(.btn-add)').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if (n==='charts') buildCharts();
+  if (n==='archive') renderArchive();
+}
+
+// ══════════════════════════════════════════════════════════════════
+// REFRESH ALL
+// ══════════════════════════════════════════════════════════════════
+function refreshAll() {
+  renderMetrics();
+  renderTable();
+  renderArchive();
+  // Rebuild charts if on analysis page
+  const chartsPage = document.getElementById('page-charts');
+  if (chartsPage && chartsPage.style.display !== 'none') buildCharts();
+}
+
+// Keyboard: Escape closes modals
+document.addEventListener('keydown', e => {
+  if (e.key==='Escape') { closeModal(); closeConfirm(); }
+});
+
+// ══════════════════════════════════════════════════════════════════
+// BOOT
+// ══════════════════════════════════════════════════════════════════
+renderMetrics();
+renderTable();
+renderCompliance();
+renderArchive();
+buildCharts();
+</script>
+</body>
+</html>
